@@ -13,9 +13,8 @@ Explain the design of your program here. (See Task 3.)
 
 
 # add other classes and functions you need here
-class sensor_storage:
-    def __init__(self):
-        pass
+#will probably add the minheap class here
+
 
 
 # Implement the class Sensor here. (See Task 1.)
@@ -30,8 +29,15 @@ class Sensor:
 class SensorCollection:
     
     def __init__(self,sensor_list):
-        # Add your implementation of the constructor here. (See Task 2.)
-        pass
+        def storage(sensor_list):
+            data_base = {}
+            n = 0
+            for sensor in sensor_list:
+                n += 1
+                data_base[f'Network{n}'] = sensor
+            return data_base
+
+
                 
     def communicate(self,sensor1,sensor2):
         # Add your implementation here. (See Task 2.)
@@ -41,6 +47,10 @@ class SensorCollection:
         # Add your implementation here. (See Task 2.)
         pass
     # Add other functions you need here.
+
+sensors = [Sensor(0,0),Sensor(0,1),Sensor(0,2),Sensor(1,0),Sensor(1,1),Sensor(1,2),Sensor(2,0),Sensor(2,1),Sensor(2,2)]
+
+
 
 '''
 # Main block (for testing purposes only):
