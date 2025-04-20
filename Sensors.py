@@ -13,7 +13,20 @@ Explain the design of your program here. (See Task 3.)
 
 
 # add other classes and functions you need here
-#will probably add the minheap class here
+
+class SensorStorage:
+    def __init__(self,Sensors):
+        self.n = len(Sensors)
+        self.V = [sensor for sensor in Sensors]
+        self.Adj = [deque() for _ in range(self.n)]
+
+    def add_adj(self):
+        x_coord = {}
+        y_coord = {}
+        for idx, sensor in enumerate(self.V):
+            x_coord[sensor.x] = idx
+            y_coord[sensor.y] = idx
+
 
 
 
@@ -29,13 +42,7 @@ class Sensor:
 class SensorCollection:
     
     def __init__(self,sensor_list):
-        def storage(sensor_list):
-            data_base = {}
-            n = 0
-            for sensor in sensor_list:
-                n += 1
-                data_base[f'Network{n}'] = sensor
-            return data_base
+        pass
 
 
                 
