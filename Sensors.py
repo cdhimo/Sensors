@@ -83,7 +83,7 @@ class Backbone:
             self.b[v].append((u, w))
 
 
-def BFS(backbone, s):
+def BFS(backbone,s):
     # reset colors to white
     for u in backbone.b:
         u.color = "white"
