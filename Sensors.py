@@ -6,129 +6,160 @@ from collections import deque
 from math import inf
 from math import sqrt
 
-
 '''
 Explain the design of your program here. (See Task 3.)
 '''
 
 
 # add other classes and functions you need here
+def eucl_dist(sensor1, sensor2):
+    w = sqrt((sensor2.x - sensor1.x) ** 2 + (sensor2.y - sensor1.y) ** 2)
+    return w
 
 class SensorStorage:
-    def __init__(self,sensor_list):
+    def __init__(self, sensor_list):
         self.n = len(sensor_list)
         self.V = [sensor for sensor in sensor_list]
         self.Adj = [deque() for _ in range(self.n)]
         for i in range(self.n):
             self.V[i].id = i
+        self.AdjList()
 
-    def AdjList(self):
+    def AdjList(self):  # Adjacency list function to store each connected sensors returns the adj list
         for i in range(self.n):
             sensor1 = self.V[i]
-            for j in range(i+1,self.n):
+            for j in range(i + 1, self.n):
                 sensor2 = self.V[j]
                 if sensor1.x == sensor2.x or sensor1.y == sensor2.y:
-                    w = sqrt((sensor2.x - sensor1.x)**2 + (sensor2.y - sensor1.y)**2)
-                    self.Adj[i].append((sensor2,w))
-                    self.Adj[j].append((sensor1,w))
+                    w = eucl_dist(sensor1, sensor2)  # calculates the euclidian distance between the two sensors
+                    self.Adj[i].append((sensor2, w))
+                    self.Adj[j].append((sensor1, w))
         return self.Adj
 
 
-def swap(Q, i, j):
-    Q[i], Q[j] = Q[j], Q[i]
-    Q[i].pos = i
-    Q[j].pos = j
 
+def make_sets(n):
+    return [i for i in range(0, n)]
 
-def MinHeapify(Q, i):
-    smallest = i
-    l = 2 * i + 1
-    r = 2 * i + 2
-    for c in [l, r]:
-        if c < len(Q) and Q[c].key < Q[smallest].key:
-            smallest = c
-    if smallest == i:
-        return
-    swap(Q, i, smallest)
-    MinHeapify(Q, smallest)
+def find_set(S, v):
+    i = v.id
+    while S[i] != i:
+        i = S[i]
+    return i
 
+def union(S, u, v):
+    urep = find_set(S, u)
+    vrep = find_set(S, v)
+    S[vrep] = urep
 
-def ExtractMin(Q):
-    swap(Q, 0, len(Q) - 1)
-    min = Q.pop()
-    MinHeapify(Q, 0)
-    return min
+def collect_edges(G):
+    edges = []
+    for u in G.V:
+        for v, w in G.Adj[u.id]:
+            # in order to avoid duplicating edges
+            if u.id < v.id:
+                edges.append((u, v, w))
+    return edges
 
-def DecreaseKey(Q, v, k):
-    v.key = k
-    i = v.pos
-    while i > 0 and Q[(i - 1) // 2].key > Q[i].key:
-        Q[(i - 1) // 2].pos = i
-        Q[i].pos = (i - 1) // 2
-        Q[(i - 1) // 2], Q[i] = Q[i], Q[(i - 1) // 2]
-        i = (i - 1) // 2
-
-def MSTPrim(S,r):
-    Q = []
-    for i in range(0,len(S.V)):
-        u = S.V[i]
-        u.key = inf
-        u.pi = None
-        Q.append(u)
-        u.pos = i
-        u.InQueue = True
-    DecreaseKey(Q,r,0)
-    while Q:
-        u = ExtractMin(Q)
-        u.InQueue = False
-        for v,w in S.Adj[u.id]:
-            print(v.key)
-            if v.InQueue == True and w < v.key:
-                v.pi = u
-                DecreaseKey(Q,v,w)
-
-
-
-
+# Kruskal's algorithm
+def MSTKruskal(G):
+    A = []
+    S = make_sets(len(G.V))
+    E = collect_edges(G)
+    E.sort(key=lambda tup: tup[2])
+    for u, v, w in E:
+        if find_set(S, u) != find_set(S, v):
+            A.append((u, v, w))
+            union(S, u, v)
+    return A
 
 class Backbone:
-    def __init__(self,sensor_list):
+    def __init__(self, MST):
+        self.b = {}
+        for u, v, w in MST:
+            if u not in self.b:
+                self.b[u] = []
+            if v not in self.b:
+                self.b[v] = []
+            self.b[u].append((v, w))
+            self.b[v].append((u, w))
+
+
+class find_path:
+    def __init__(self, backbone):
+        self.V = [n for n in range(len(backbone))]
         pass
+def BFS(backbone, s):
+    # reset colors to white
+    for u in backbone.b:
+        u.color = "white"
+        u.pi = None
+    s.color = "gray"
+    s.d = 0
+    s.pi = None
+    Q = deque()
+    Q.append(s)
+    while Q:
+        u = Q.popleft()
+        for v in backbone.b[u]:
+            v = v[0]
+            if v.color == "white":
+                v.color = "gray"
+                v.d = u.d + eucl_dist(u, v)
+                v.pi = u
+                Q.append(v)
+        u.color = "black"
+
+
+def print_BFS_result(backbone):
+    for v in backbone.b:
+        s = str(v) + ": " + str(v.d)
+        print(s)
+
+
+def print_path(s, v):
+    if v.id != s.id and v.pi == None:
+        print("vertex", v.id, "is not reachable")
+    else:
+        s = str(v)
+        while v.pi != None:
+            v = v.pi
+            s = str(v.id) + "," + s
+        print(s)
 
 
 # Implement the class Sensor here. (See Task 1.)
 class Sensor:
-    def __init__(self,x,y):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.id = None # Everything below including ID is needed for prims algorithm - id is set during the sensor storage portion
-        self.key = inf
+        self.id = None  # ID is needed for Kruskals algorithm - id is set during the sensor storage portion
+        self.color = None
+        self.d = None
         self.pi = None
-        self.pos = inf
-        self.inQueue = False
+
     def __repr__(self):
         return f"({str(self.x)},{str(self.y)})"
 
-        
+
 class SensorCollection:
-    
-    def __init__(self,sensor_list):
+
+    def __init__(self, sensor_list):
         self.storage = SensorStorage(sensor_list)
+        self.MST = MSTKruskal(self.storage)
+        self.backbone = Backbone(self.MST)
 
+    def communicate(self, sensor1, sensor2):
 
-
-                
-    def communicate(self,sensor1,sensor2):
-        # Add your implementation here. (See Task 2.)
         pass
 
-    def cdist(self,sensor1,sensor2):
+    def cdist(self, sensor1, sensor2):
         pass
     # Add other functions you need here.
 
-sensors = [Sensor(0,0),Sensor(0,1),Sensor(0,2),Sensor(1,0),Sensor(1,1),Sensor(1,2),Sensor(2,0),Sensor(2,1),Sensor(2,2)]
 
-
+sensors = [Sensor(0, 0), Sensor(0, 1), Sensor(0, 2), Sensor(1, 0), Sensor(1, 1), Sensor(1, 2), Sensor(2, 0),
+           Sensor(2, 1), Sensor(2, 2)]
 
 '''
 # Main block (for testing purposes only):
@@ -143,7 +174,7 @@ if __name__== '__main__':
         print( "   " + str( collection.communicate(sensors[i],sensors[j]) ) )
         print( "   Distance : " + str( collection.cdist(sensors[i],sensors[j]) ) )
     print()
-       
+
     sensors = [Sensor(0,0),Sensor(2,5),Sensor(1,0),Sensor(3.5,1)] 
     collection = SensorCollection(sensors)
     print( "Example 2:" )
@@ -155,7 +186,7 @@ if __name__== '__main__':
         print( "   Distance : " + str( collection.cdist(sensors[i],sensors[j]) ) )
     print()
 '''
-    
+
 '''
 Answers to Task 3:
 (a)
@@ -164,12 +195,18 @@ ADD YOUR ANSWER HERE.
 ADD YOUR ANSWER HERE.
 '''
 
-    
 '''
 Resources (other than lecture resources) used:
 LIST USED RESOURCES HERE.
 '''
+test = sensors[0]
 prac = SensorStorage(sensors)
-MSTPrim(prac,sensors[0])
+A = MSTKruskal(prac)
+backbone = Backbone(A)
+bfs = BFS(backbone,sensors[1])
+print_BFS_result(backbone)
+print_path(sensors[0],sensors[-1])
+
+
 
 
