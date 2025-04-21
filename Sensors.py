@@ -20,13 +20,16 @@ class SensorStorage:
         self.V = [sensor for sensor in Sensors]
         self.Adj = [deque() for _ in range(self.n)]
 
-    def add_adj(self):
-        x_coord = {}
-        y_coord = {}
-        for idx, sensor in enumerate(self.V):
-            x_coord[sensor.x] = idx
-            y_coord[sensor.y] = idx
-
+    def AdjList(self):
+        for i in range(self.n):
+            sensor1 = self.V[i]
+            for j in range(i+1,self.n):
+                sensor2 = self.V[j]
+                if sensor1.x == sensor2.x or sensor1.y == sensor2.y:
+                    w = sqrt((sensor2.x - sensor1.x)**2 + (sensor2.y - sensor1.y)**2)
+                    self.Adj[i].append((sensor2,w))
+                    self.Adj[j].append((sensor1,w))
+        return self.Adj
 
 
 
@@ -42,7 +45,8 @@ class Sensor:
 class SensorCollection:
     
     def __init__(self,sensor_list):
-        pass
+        Storage = SensorStorage(sensor_list)
+
 
 
                 
@@ -51,7 +55,6 @@ class SensorCollection:
         pass
 
     def cdist(self,sensor1,sensor2):
-        # Add your implementation here. (See Task 2.)
         pass
     # Add other functions you need here.
 
@@ -98,3 +101,5 @@ ADD YOUR ANSWER HERE.
 Resources (other than lecture resources) used:
 LIST USED RESOURCES HERE.
 '''
+prac = SensorStorage(sensors)
+
