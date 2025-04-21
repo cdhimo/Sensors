@@ -15,10 +15,12 @@ Explain the design of your program here. (See Task 3.)
 # add other classes and functions you need here
 
 class SensorStorage:
-    def __init__(self,Sensors):
-        self.n = len(Sensors)
-        self.V = [sensor for sensor in Sensors]
+    def __init__(self,sensor_list):
+        self.n = len(sensor_list)
+        self.V = [sensor for sensor in sensor_list]
         self.Adj = [deque() for _ in range(self.n)]
+        for i in range(self.n):
+            self.V[i].id = i
 
     def AdjList(self):
         for i in range(self.n):
@@ -32,12 +34,78 @@ class SensorStorage:
         return self.Adj
 
 
+def swap(Q, i, j):
+    Q[i], Q[j] = Q[j], Q[i]
+    Q[i].pos = i
+    Q[j].pos = j
+
+
+def MinHeapify(Q, i):
+    smallest = i
+    l = 2 * i + 1
+    r = 2 * i + 2
+    for c in [l, r]:
+        if c < len(Q) and Q[c].key < Q[smallest].key:
+            smallest = c
+    if smallest == i:
+        return
+    swap(Q, i, smallest)
+    MinHeapify(Q, smallest)
+
+
+def ExtractMin(Q):
+    swap(Q, 0, len(Q) - 1)
+    min = Q.pop()
+    MinHeapify(Q, 0)
+    return min
+
+def DecreaseKey(Q, v, k):
+    v.key = k
+    i = v.pos
+    while i > 0 and Q[(i - 1) // 2].key > Q[i].key:
+        Q[(i - 1) // 2].pos = i
+        Q[i].pos = (i - 1) // 2
+        Q[(i - 1) // 2], Q[i] = Q[i], Q[(i - 1) // 2]
+        i = (i - 1) // 2
+
+def MSTPrim(S,r):
+    Q = []
+    for i in range(0,len(S.V)):
+        u = S.V[i]
+        u.key = inf
+        u.pi = None
+        Q.append(u)
+        u.pos = i
+        u.InQueue = True
+    DecreaseKey(Q,r,0)
+    while Q:
+        u = ExtractMin(Q)
+        u.InQueue = False
+        for v,w in S.Adj[u.id]:
+            print(v.key)
+            if v.InQueue == True and w < v.key:
+                v.pi = u
+                DecreaseKey(Q,v,w)
+
+
+
+
+
+class Backbone:
+    def __init__(self,sensor_list):
+        pass
+
 
 # Implement the class Sensor here. (See Task 1.)
 class Sensor:
     def __init__(self,x,y):
         self.x = x
         self.y = y
+        self.id = None # Everything below including ID is needed for prims algorithm - id is set during the sensor storage portion
+        self.key = inf
+        self.pi = None
+        self.pos = inf
+        self.inQueue = False
     def __repr__(self):
         return f"({str(self.x)},{str(self.y)})"
 
@@ -45,7 +113,7 @@ class Sensor:
 class SensorCollection:
     
     def __init__(self,sensor_list):
-        Storage = SensorStorage(sensor_list)
+        self.storage = SensorStorage(sensor_list)
 
 
 
@@ -102,4 +170,6 @@ Resources (other than lecture resources) used:
 LIST USED RESOURCES HERE.
 '''
 prac = SensorStorage(sensors)
+MSTPrim(prac,sensors[0])
+
 
