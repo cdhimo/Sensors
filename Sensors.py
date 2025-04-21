@@ -1,9 +1,8 @@
 # MA214 Assessed Coursework 2025
-#
+
 # Candidate Number: PUT YOUR CANDIDATE NUMBER HERE
 
 from collections import deque
-from math import inf
 from math import sqrt
 
 '''
@@ -30,10 +29,9 @@ class SensorStorage:
             sensor1 = self.V[i]
             for j in range(i + 1, self.n):
                 sensor2 = self.V[j]
-                if sensor1.x == sensor2.x or sensor1.y == sensor2.y:
-                    w = eucl_dist(sensor1, sensor2)  # calculates the euclidian distance between the two sensors
-                    self.Adj[i].append((sensor2, w))
-                    self.Adj[j].append((sensor1, w))
+                w = eucl_dist(sensor1, sensor2)  # calculates the euclidian distance between the two sensors
+                self.Adj[i].append((sensor2, w))
+                self.Adj[j].append((sensor1, w))
         return self.Adj
 
 
@@ -85,10 +83,6 @@ class Backbone:
             self.b[v].append((u, w))
 
 
-class find_path:
-    def __init__(self, backbone):
-        self.V = [n for n in range(len(backbone))]
-        pass
 def BFS(backbone, s):
     # reset colors to white
     for u in backbone.b:
@@ -110,22 +104,15 @@ def BFS(backbone, s):
                 Q.append(v)
         u.color = "black"
 
-
-def print_BFS_result(backbone):
-    for v in backbone.b:
-        s = str(v) + ": " + str(v.d)
-        print(s)
-
-
-def print_path(s, v):
-    if v.id != s.id and v.pi == None:
-        print("vertex", v.id, "is not reachable")
-    else:
-        s = str(v)
-        while v.pi != None:
-            v = v.pi
-            s = str(v.id) + "," + s
-        print(s)
+def build_chain(backbone,sensor1,sensor2,chain):
+    BFS(backbone, sensor2)
+    end = sensor2
+    start = sensor1
+    while start != end:
+        chain.append(start)
+        start = start.pi
+    chain.append(start)
+    return chain
 
 
 # Implement the class Sensor here. (See Task 1.)
@@ -150,19 +137,19 @@ class SensorCollection:
         self.backbone = Backbone(self.MST)
 
     def communicate(self, sensor1, sensor2):
+        self.chain = []
+        build_chain(self.backbone,sensor1,sensor2,self.chain)
+        return self.chain
 
-        pass
+
 
     def cdist(self, sensor1, sensor2):
-        pass
+        BFS(self.backbone, sensor2)
+        return sensor1.d
     # Add other functions you need here.
 
 
-sensors = [Sensor(0, 0), Sensor(0, 1), Sensor(0, 2), Sensor(1, 0), Sensor(1, 1), Sensor(1, 2), Sensor(2, 0),
-           Sensor(2, 1), Sensor(2, 2)]
 
-'''
-# Main block (for testing purposes only):
 if __name__== '__main__':
     sensors = [Sensor(0,0),Sensor(0,1),Sensor(0,2),Sensor(1,0),Sensor(1,1),Sensor(1,2),Sensor(2,0),Sensor(2,1),Sensor(2,2)] 
     collection = SensorCollection(sensors)
@@ -185,7 +172,7 @@ if __name__== '__main__':
         print( "   " + str( collection.communicate(sensors[i],sensors[j]) ) )
         print( "   Distance : " + str( collection.cdist(sensors[i],sensors[j]) ) )
     print()
-'''
+
 
 '''
 Answers to Task 3:
@@ -199,13 +186,8 @@ ADD YOUR ANSWER HERE.
 Resources (other than lecture resources) used:
 LIST USED RESOURCES HERE.
 '''
-test = sensors[0]
-prac = SensorStorage(sensors)
-A = MSTKruskal(prac)
-backbone = Backbone(A)
-bfs = BFS(backbone,sensors[1])
-print_BFS_result(backbone)
-print_path(sensors[0],sensors[-1])
+
+
 
 
 
