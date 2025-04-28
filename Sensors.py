@@ -6,22 +6,88 @@ from collections import deque
 from math import sqrt
 
 '''
-Explain the design of your program here. (See Task 3.)
+Data Structures:
+-----------------------
+self.V (list of vertices):
+- Stores all sensor objects. This list models the graph’s vertices and is used in Kruskal’s algorithm for 
+Minimum Spanning Tree (MST) construction.
+
+self.Adj (list of deques):
+- Stores adjacency lists for each sensor. Each deque contains pairs (neighbor_sensor, distance), allowing efficient 
+storage and lookup of neighboring connections during MST setup.
+
+self.b (dictionary):
+- Stores the backbone (the MST). Each sensor maps to a list of neighboring sensors with their corresponding edge weights. 
+This allows for fast traversal when building communication chains.
+
+Union-Find Structure (list):
+- Used in Kruskal’s algorithm to efficiently check whether adding an edge would create a cycle. This ensures the backbone 
+remains a valid tree (acyclic).
+
+Algorithms:
+-----------------------
+Kruskal’s Algorithm (MSTKruskal):
+- Constructs the communication backbone (MST) ensuring minimal total distance between all sensors. Sorts edges by weight 
+and uses Union-Find to avoid cycles.
+
+Breadth-First Search (BFS):
+- Traverses the backbone to find the unique communication chain and communication distance between two sensors by following 
+parent pointers.
+
+Auxiliary Classes and Functions:
+---------------------------------------
+eucl_dist:
+- Calculates the Euclidean distance between two sensors. Used when building the adjacency list, when sorting edges for 
+Kruskal’s algorithm, and when computing distances during BFS traversal.
+
+Class SensorStorage:
+- Models the sensor network as a complete weighted graph. Stores the list of sensors (`self.V`) and adjacency lists (`self.Adj`).
+- Contains the AdjList() function which uses a double for loop to connect all pairs of sensors with their Euclidean distances.
+
+collect_edges, make_sets, find_set, union:
+- Helper functions used to set up Kruskal’s algorithm. collect_edges gathers edges; make_sets initializes disjoint sets; 
+find_set and union manage the Union-Find structure.
+
+Class Backbone:
+- Stores the MST as a dictionary mapping each sensor to its connected neighbors and edge weights.
+- Used to efficiently perform BFS traversals to find communication chains.
+
+build_chain function:
+- Reconstructs the communication chain between two sensors by calling BFS first and then following parent pointers 
+backward from the destination sensor to the source.
+
+Class Sensor:
+- Represents a sensor with (x, y) coordinates.
+- Also stores properties (`id`, `color`, `d`, `pi`) needed for BFS and Kruskal’s algorithm.
+
+Class SensorCollection:
+- Organizes the entire sensor network.
+- self.storage: Creates a SensorStorage object from a list of sensors.
+- self.MST: Builds the MST using Kruskal’s algorithm.
+- self.backbone: Stores the MST in a Backbone structure for fast traversal.
+
+def communicate:
+- Calls build_chain using the backbone and given sensors.
+- Returns the chain (list of sensors) representing the communication path.
+
+def cdist:
+- Calls BFS on the backbone to traverse from one sensor to another.
+- Returns the total communication distance from sensor1 to sensor2, stored in sensor1.d after traversal.
+
 '''
 
 
-# add other classes and functions you need here
-def eucl_dist(sensor1, sensor2):
+def eucl_dist(sensor1, sensor2): # function calculates the euclidian distance, easy to use for future parts of the algorithm
     w = sqrt((sensor2.x - sensor1.x) ** 2 + (sensor2.y - sensor1.y) ** 2)
     return w
 
 class SensorStorage:
     def __init__(self, sensor_list):
-        self.n = len(sensor_list)
-        self.V = [sensor for sensor in sensor_list]
-        self.Adj = [deque() for _ in range(self.n)]
+        self.n = len(sensor_list) # number of sensors
+        self.V = [sensor for sensor in sensor_list] # Vertices
+        self.Adj = [deque() for _ in range(self.n)] # adj list (connected edges)
         for i in range(self.n):
-            self.V[i].id = i
+            self.V[i].id = i #keeps track of original sensor order
         self.AdjList()
 
     def AdjList(self):  # Adjacency list function to store each connected sensors returns the adj list
@@ -35,7 +101,9 @@ class SensorStorage:
         return self.Adj
 
 
-
+'''
+Functions for the set-up of Kruskals
+'''
 def make_sets(n):
     return [i for i in range(0, n)]
 
@@ -59,7 +127,6 @@ def collect_edges(G):
                 edges.append((u, v, w))
     return edges
 
-# Kruskal's algorithm
 def MSTKruskal(G):
     A = []
     S = make_sets(len(G.V))
@@ -71,6 +138,10 @@ def MSTKruskal(G):
             union(S, u, v)
     return A
 
+
+'''
+Backbone Structure using Hashmap
+'''
 class Backbone:
     def __init__(self, MST):
         self.b = {}
@@ -82,6 +153,9 @@ class Backbone:
             self.b[u].append((v, w))
             self.b[v].append((u, w))
 
+'''
+Breadth First Search implemented with backbone structure
+'''
 
 def BFS(backbone,s):
     # reset colors to white
@@ -103,6 +177,10 @@ def BFS(backbone,s):
                 v.pi = u
                 Q.append(v)
         u.color = "black"
+
+'''
+Function to display communication chain used in def communicate
+'''
 
 def build_chain(backbone,sensor1,sensor2,chain):
     BFS(backbone, sensor2)
@@ -146,8 +224,6 @@ class SensorCollection:
     def cdist(self, sensor1, sensor2):
         BFS(self.backbone, sensor2)
         return sensor1.d
-    # Add other functions you need here.
-
 
 
 if __name__== '__main__':
