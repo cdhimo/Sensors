@@ -1,6 +1,6 @@
 # MA214 Assessed Coursework 2025
 
-# Candidate Number: PUT YOUR CANDIDATE NUMBER HERE
+# Candidate Number: 41222
 
 from collections import deque
 from math import sqrt
@@ -320,19 +320,46 @@ if __name__== '__main__':
 
 
 '''
-Answers to Task 3:
+Answers to Task 4:
+
 (a)
-ADD YOUR ANSWER HERE.
+If you just connect the new sensor to the closest existing sensor after the original MST is built,
+you're only optimizing locally, not globally.
+
+You don't check whether earlier MST choices (the original edges) could have been rearranged in a way that, when including 
+the new sensor, would create a shorter total distance. Simply adding to the existing MST cannot guarantee that the 
+final communication backbone has minimal total Euclidean distance (property B2).
+ 
+ 
+example where this is violated:
+A = (0,0): A-B = 6 | A-C = 5 
+B = (6,0): B-A = 6 | B-C = 5
+C = (3,4) C-A = 5 | C-B = 5
+MST = A-C-B = 10
+
+Add D (3,0): D-A = 3 | D-C = 4 | D-B = 3
+local  = A-C-B D-B = 13 Not shortest total euclidean distance
+
+Global recompute MST
+D-A D-B D-C = 10
+
+
 (b)
-ADD YOUR ANSWER HERE.
+Given that the original backbone is a minimum spanning tree (MST), after deleting a sensor s, the resulting structure
+ may become disconnected. To restore connectivity while maintaining minimal total Euclidean distance, we proceed by 
+iteratively adding the smallest available edge between any two disconnected components that do not yet have a 
+communication chain between them. This process mirrors Kruskal’s algorithm: at each step, the smallest "safe" edge is added, 
+ensuring no cycles are formed and that minimal connection cost is maintained. Therefore, after removing s and reconnecting 
+the components via minimal edges, the resulting backbone is once again a minimum spanning tree, satisfying properties 
+(B1) and (B2).
+
+
 '''
 
 '''
 Resources (other than lecture resources) used:
-LIST USED RESOURCES HERE.
+LIST USED RESOURCES HERE. Python Documentation, Course Textbookl
 '''
-
-
 
 
 
